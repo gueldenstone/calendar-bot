@@ -53,20 +53,25 @@ func main() {
 	if err != nil {
 		errLog.Fatal(err)
 	}
-	_, err = client.Login(&mautrix.ReqLogin{
-		Type:             "m.login.password",
-		Identifier:       mautrix.UserIdentifier{Type: mautrix.IdentifierTypeUser, User: conf.Username},
-		Password:         conf.Password,
-		StoreCredentials: true,
-	})
+	for {
+		_, err = client.Login(&mautrix.ReqLogin{
+			Type:             "m.login.password",
+			Identifier:       mautrix.UserIdentifier{Type: mautrix.IdentifierTypeUser, User: conf.Username},
+			Password:         conf.Password,
+			StoreCredentials: true,
+		})
+		if err != nil {
+			errLog.Println(err)
+			time.Sleep(30 * time.Second)
+		} else {
+			break
+		}
+	}
 	defer func() {
 		if _, err := client.Logout(); err != nil {
 			errLog.Println(err)
 		}
 	}()
-	if err != nil {
-		errLog.Fatal(err)
-	}
 	infoLog.Println("Login successful")
 
 	// validate roomIDs
