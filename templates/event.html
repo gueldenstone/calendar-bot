@@ -1,0 +1,18 @@
+<h2>Todays Events</h2>
+
+<table>
+	<tr>
+		<th>Summary</th>
+		<th>Start</th>
+		<th>End</th>
+		<th>Description</th>
+	</tr>
+	{{range .Events}}
+	<tr>
+		<td>{{.Summary}}</td>
+		<td>{{.StartTime}}</td>
+		<td>{{.EndTime}}</td>
+		<td>{{.Description}}</td>
+	</tr>
+	{{end}}
+</table>

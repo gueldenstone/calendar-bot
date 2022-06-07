@@ -1,0 +1,113 @@
+package message
+
+import (
+	"bytes"
+	"fmt"
+	"text/template"
+	"time"
+
+	"github.com/emersion/go-ical"
+	"maunium.net/go/mautrix/event"
+)
+
+const (
+	timeLayout = "15:04"
+)
+
+type Event struct {
+	Summary     string
+	StartTime   string
+	EndTime     string
+	Description string
+}
+
+type TemplatedMessage struct {
+	Events       []Event
+	htmlTemplate *template.Template
+	txtTemplate  *template.Template
+}
+
+func NewTemplatedMessage(htmlTemplate, txtTemplate string, events []ical.Event) (TemplatedMessage, error) {
+	msg := TemplatedMessage{}
+	for _, evt := range events {
+		prop := evt.Props.Get(ical.PropSummary)
+		var summary string
+		if prop != nil {
+			summary = prop.Value
+		} else {
+			return msg, fmt.Errorf("no summary for event %s", evt.Name)
+		}
+		startTime, err := evt.Props.DateTime(ical.PropDateTimeStart, time.Local)
+		if err != nil {
+			return msg, err
+		}
+		endTime, err := evt.Props.DateTime(ical.PropDateTimeEnd, time.Local)
+		if err != nil {
+			return msg, err
+		}
+		var description string
+		prop = evt.Props.Get(ical.PropDescription)
+		if prop != nil {
+			description = prop.Value
+		} else {
+			description = ""
+		}
+		msg.Events = append(msg.Events, Event{
+			Summary:     summary,
+			StartTime:   startTime.Format(timeLayout),
+			EndTime:     endTime.Format(timeLayout),
+			Description: description,
+		})
+	}
+	htmlTmpl, err := template.ParseFiles(htmlTemplate)
+	if err != nil {
+		return msg, err
+	}
+	txtTmpl, err := template.ParseFiles(txtTemplate)
+	if err != nil {
+		return msg, err
+	}
+	msg.htmlTemplate = htmlTmpl
+	msg.txtTemplate = txtTmpl
+	return msg, nil
+}
+
+func (t TemplatedMessage) RenderHtml() (string, error) {
+	buf := bytes.Buffer{}
+	err := t.htmlTemplate.Execute(&buf, t)
+	return buf.String(), err
+}
+
+func (t TemplatedMessage) RenderTxt() (string, error) {
+	buf := bytes.Buffer{}
+	err := t.txtTemplate.Execute(&buf, t)
+	return buf.String(), err
+}
+func (t TemplatedMessage) Render() (html string, txt string, err error) {
+	html, err = t.RenderHtml()
+	if err != nil {
+		return "", "", err
+	}
+	txt, err = t.RenderTxt()
+	if err != nil {
+		return "", "", err
+	}
+	return
+}
+
+func (t TemplatedMessage) MatrixMessage() (event.MessageEventContent, error) {
+	html, err := t.RenderHtml()
+	if err != nil {
+		return event.MessageEventContent{}, err
+	}
+	txt, err := t.RenderTxt()
+	if err != nil {
+		return event.MessageEventContent{}, err
+	}
+	return event.MessageEventContent{
+		MsgType:       event.MsgText,
+		Body:          txt,
+		Format:        event.FormatHTML,
+		FormattedBody: html,
+	}, nil
+}

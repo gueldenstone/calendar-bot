@@ -1,0 +1,5 @@
+Todays Events:
+
+{{range .Events}}
+- {{.Summary}} from {{.StartTime}} to {{.EndTime}}
+{{end}}

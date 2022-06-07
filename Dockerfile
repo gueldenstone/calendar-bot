@@ -1,0 +1,29 @@
+##
+## Build
+##
+FROM golang:1.18-alpine AS build
+
+WORKDIR /app
+
+COPY go.mod ./
+COPY go.sum ./
+RUN go mod download
+
+COPY cmd ./cmd/
+COPY internal ./internal
+
+RUN go build -o /calendar-bot ./cmd/calendar-bot
+
+##
+## Deploy
+##
+FROM alpine
+
+WORKDIR /
+RUN apk add --no-cache tzdata
+RUN adduser -D calendar-bot
+USER calendar-bot
+COPY --from=build /calendar-bot /calendar-bot
+COPY ./templates /templates
+
+ENTRYPOINT ["/calendar-bot", "-html", "/templates/event.html", "-txt", "/templates/event.txt"]
