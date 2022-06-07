@@ -27,7 +27,7 @@ type TemplatedMessage struct {
 	txtTemplate  *template.Template
 }
 
-func NewTemplatedMessage(htmlTemplate, txtTemplate string, events []ical.Event) (TemplatedMessage, error) {
+func NewTemplatedMessage(htmlTemplate, txtTemplate string, events []ical.Event, tz *time.Location) (TemplatedMessage, error) {
 	msg := TemplatedMessage{}
 	for _, evt := range events {
 		prop := evt.Props.Get(ical.PropSummary)
@@ -37,11 +37,11 @@ func NewTemplatedMessage(htmlTemplate, txtTemplate string, events []ical.Event) 
 		} else {
 			return msg, fmt.Errorf("no summary for event %s", evt.Name)
 		}
-		startTime, err := evt.Props.DateTime(ical.PropDateTimeStart, time.Local)
+		startTime, err := evt.Props.DateTime(ical.PropDateTimeStart, tz)
 		if err != nil {
 			return msg, err
 		}
-		endTime, err := evt.Props.DateTime(ical.PropDateTimeEnd, time.Local)
+		endTime, err := evt.Props.DateTime(ical.PropDateTimeEnd, tz)
 		if err != nil {
 			return msg, err
 		}

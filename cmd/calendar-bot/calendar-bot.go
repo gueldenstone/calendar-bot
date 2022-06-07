@@ -97,7 +97,8 @@ func main() {
 	if err != nil {
 		notifyTime, _ = time.Parse("15:04", "10:00")
 	}
-	s := gocron.NewScheduler(time.Local)
+	timezone := time.Local
+	s := gocron.NewScheduler(timezone)
 
 	infoLog.Printf("Scheduling notifications for %s", notifyTime.Format("15:04"))
 	s.Every(1).Day().At(notifyTime).Do(func() {
@@ -106,6 +107,7 @@ func main() {
 		if err != nil {
 			errLog.Printf("Could not read calendar info from %s\n", conf.Calendar)
 		}
+		cal.SetTimezone(timezone)
 		todayEvents, err := cal.GetEventsOn(time.Now().Add(24 * time.Hour))
 		if err != nil {
 			errLog.Println(err)
@@ -115,7 +117,7 @@ func main() {
 			return
 		}
 		infoLog.Printf("Sending notification with %d events\n", len(todayEvents))
-		tmplMsg, err := message.NewTemplatedMessage(*htmlTmplPath, *txtTmplPath, todayEvents)
+		tmplMsg, err := message.NewTemplatedMessage(*htmlTmplPath, *txtTmplPath, todayEvents, timezone)
 		matrixMsg, err := tmplMsg.MatrixMessage()
 		if err != nil {
 			errLog.Println(err)

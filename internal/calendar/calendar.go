@@ -10,11 +10,12 @@ import (
 
 type Calendar struct {
 	url string
+	tz  *time.Location
 	*ical.Calendar
 }
 
 func NewCalendar(url string) (Calendar, error) {
-	calendar := Calendar{url: url}
+	calendar := Calendar{url: url, tz: time.Local}
 	resp, err := http.Get(url)
 	if err != nil {
 		return calendar, err
@@ -31,12 +32,16 @@ func NewCalendar(url string) (Calendar, error) {
 	return calendar, nil
 }
 
+func (cal *Calendar) SetTimezone(tz *time.Location) {
+	cal.tz = tz
+}
+
 func (cal Calendar) GetEventsOn(date time.Time) ([]ical.Event, error) {
 	events := make([]ical.Event, 0)
-	todayStart := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.Local)
+	todayStart := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, cal.tz)
 	todayEnd := todayStart.Add(24 * time.Hour)
 	for _, e := range cal.Events() {
-		start, err := e.DateTimeStart(time.Local)
+		start, err := e.DateTimeStart(cal.tz)
 		if err != nil {
 			return []ical.Event{}, err
 		}
