@@ -113,7 +113,7 @@ func main() {
 			errLog.Printf("Could not read calendar info from %s\n", conf.Calendar)
 		}
 		cal.SetTimezone(timezone)
-		todayEvents, err := cal.GetEventsOn(time.Now().Add(24 * time.Hour))
+		todayEvents, err := cal.GetEventsOn(time.Now())
 		if err != nil {
 			errLog.Println(err)
 		}
