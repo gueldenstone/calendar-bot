@@ -136,5 +136,3 @@ func main() {
 	})
 	s.StartBlocking()
 }
-
-// https://files.x-hain.de/remote.php/dav/public-calendars/Yi63cicwgDnjaBHR/?export
