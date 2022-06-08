@@ -45,8 +45,12 @@ func (cal Calendar) GetEventsOn(date time.Time) ([]ical.Event, error) {
 		if err != nil {
 			return []ical.Event{}, err
 		}
+		end, err := e.DateTimeEnd(cal.tz)
+		if err != nil {
+			return []ical.Event{}, err
+		}
 		// regular event
-		if start.After(todayStart) && start.Before(todayEnd) {
+		if (start.After(todayStart) || start == todayStart) && start.Before(todayEnd) || (start.Before(todayStart) && end.After(todayEnd)) {
 			events = append(events, e)
 			continue
 		}

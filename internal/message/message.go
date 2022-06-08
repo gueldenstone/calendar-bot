@@ -52,12 +52,20 @@ func NewTemplatedMessage(htmlTemplate, txtTemplate string, events []ical.Event, 
 		} else {
 			description = ""
 		}
-		msg.Events = append(msg.Events, Event{
+		evt := Event{
 			Summary:     summary,
 			StartTime:   startTime.Format(timeLayout),
 			EndTime:     endTime.Format(timeLayout),
 			Description: description,
-		})
+		}
+		if startTime.Hour() == 0 && startTime.Minute() == 0 {
+			evt.StartTime = "-"
+		}
+		if endTime.Hour() == 0 && endTime.Minute() == 0 {
+			evt.EndTime = "-"
+		}
+
+		msg.Events = append(msg.Events, evt)
 	}
 	htmlTmpl, err := template.ParseFiles(htmlTemplate)
 	if err != nil {
