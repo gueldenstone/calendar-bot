@@ -2,6 +2,7 @@ package calendar
 
 import (
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/emersion/go-ical"
@@ -73,5 +74,11 @@ func (cal Calendar) GetEventsOn(date time.Time) ([]ical.Event, error) {
 			}
 		}
 	}
+	// sort events
+	sort.SliceStable(events, func(i, j int) bool {
+		start1, _ := events[i].DateTimeStart(cal.tz)
+		start2, _ := events[j].DateTimeStart(cal.tz)
+		return start1.Before(start2)
+	})
 	return events, nil
 }
