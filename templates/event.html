@@ -1,18 +1,7 @@
-<h2>Todays Events</h2>
-
-<table>
-	<tr>
-		<th>Summary</th>
-		<th>Start</th>
-		<th>End</th>
-		<th>Description</th>
-	</tr>
+<h3>Todays Events</h3>
+<ul>
 	{{range .Events}}
-	<tr>
-		<td>{{.Summary}}</td>
-		<td>{{.StartTime}}</td>
-		<td>{{.EndTime}}</td>
-		<td>{{.Description}}</td>
-	</tr>
+	<li>{{.Summary}}{{ if ne .StartTime `` }}: {{.StartTime}} - {{.EndTime}} {{end}} {{ if ne .Description `` }}
+		({{.Description}}) {{end}}</li>
 	{{end}}
-</table>
+</ul>

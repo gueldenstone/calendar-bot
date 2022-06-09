@@ -59,10 +59,10 @@ func NewTemplatedMessage(htmlTemplate, txtTemplate string, events []ical.Event, 
 			Description: description,
 		}
 		if startTime.Hour() == 0 && startTime.Minute() == 0 {
-			evt.StartTime = "-"
+			evt.StartTime = ""
 		}
 		if endTime.Hour() == 0 && endTime.Minute() == 0 {
-			evt.EndTime = "-"
+			evt.EndTime = ""
 		}
 
 		msg.Events = append(msg.Events, evt)
