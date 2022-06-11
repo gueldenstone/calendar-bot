@@ -67,11 +67,17 @@ func NewTemplatedMessage(htmlTemplate, txtTemplate string, events []ical.Event, 
 
 		msg.Events = append(msg.Events, evt)
 	}
-	htmlTmpl, err := template.ParseFiles(htmlTemplate)
+
+	funcMap := template.FuncMap{
+		"today": func() string {
+			return time.Now().Format("Monday 02.01.2006")
+		},
+	}
+	htmlTmpl, err := template.New("event.html").Funcs(funcMap).ParseFiles(htmlTemplate)
 	if err != nil {
 		return msg, err
 	}
-	txtTmpl, err := template.ParseFiles(txtTemplate)
+	txtTmpl, err := template.New("event.txt").Funcs(funcMap).ParseFiles(txtTemplate)
 	if err != nil {
 		return msg, err
 	}

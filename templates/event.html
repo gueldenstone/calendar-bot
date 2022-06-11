@@ -1,4 +1,4 @@
-<h3>Todays Events</h3>
+<h3>Events on {{ today }}</h3>
 <ul>
 	{{range .Events}}
 	<li>{{.Summary}}{{ if ne .StartTime `` }}: {{.StartTime}} - {{.EndTime}} {{end}} {{ if ne .Description `` }}
