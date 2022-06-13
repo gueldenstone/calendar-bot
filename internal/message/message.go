@@ -119,7 +119,7 @@ func (t TemplatedMessage) MatrixMessage() (event.MessageEventContent, error) {
 		return event.MessageEventContent{}, err
 	}
 	return event.MessageEventContent{
-		MsgType:       event.MsgText,
+		MsgType:       event.MsgNotice,
 		Body:          txt,
 		Format:        event.FormatHTML,
 		FormattedBody: html,
