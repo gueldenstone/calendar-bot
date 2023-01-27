@@ -106,14 +106,14 @@ func main() {
 	s := gocron.NewScheduler(timezone)
 
 	infoLog.Printf("Scheduling notifications for %s", notifyTime.Format("15:04"))
-	s.Every(1).Day().At(notifyTime).Do(func() {
+	s.Every(1).Day().At(time.Now().Add(1 * time.Second)).Do(func() {
 		infoLog.Println("Start Notification")
 		cal, err := calendar.NewCalendar(conf.Calendar)
 		if err != nil {
 			errLog.Printf("Could not read calendar info from %s\n", conf.Calendar)
 		}
 		cal.SetTimezone(timezone)
-		todayEvents, err := cal.GetEventsOn(time.Now())
+		todayEvents, err := cal.GetEventsOn(time.Date(2023, 1, 26, 0, 0, 0, 0, timezone))
 		if err != nil {
 			errLog.Println(err)
 		}
@@ -123,9 +123,14 @@ func main() {
 		}
 		infoLog.Printf("Sending notification with %d events\n", len(todayEvents))
 		tmplMsg, err := message.NewTemplatedMessage(*htmlTmplPath, *txtTmplPath, todayEvents, timezone)
+		if err != nil {
+			errLog.Println(err)
+			return
+		}
 		matrixMsg, err := tmplMsg.MatrixMessage()
 		if err != nil {
 			errLog.Println(err)
+			return
 		}
 		for _, room := range rooms {
 			if _, err := client.SendMessageEvent(room, event.EventMessage, matrixMsg); err != nil {

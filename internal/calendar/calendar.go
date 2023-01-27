@@ -15,6 +15,8 @@ type Calendar struct {
 	*ical.Calendar
 }
 
+const iCalTimeFormat = "20060102T150405"
+
 func NewCalendar(url string) (Calendar, error) {
 	calendar := Calendar{url: url, tz: time.Local}
 	resp, err := http.Get(url)
@@ -39,7 +41,7 @@ func (cal *Calendar) SetTimezone(tz *time.Location) {
 
 func (cal Calendar) GetEventsOn(date time.Time) ([]ical.Event, error) {
 	events := make([]ical.Event, 0)
-	todayStart := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, cal.tz)
+	todayStart := GetDateWithoutTime(date)
 	todayEnd := todayStart.Add(24 * time.Hour)
 	for _, e := range cal.Events() {
 		start, err := e.DateTimeStart(cal.tz)
@@ -68,6 +70,17 @@ func (cal Calendar) GetEventsOn(date time.Time) ([]ical.Event, error) {
 			}
 			times := rule.Between(todayStart, todayEnd, true)
 			for _, t := range times {
+				exception := e.Component.Props.Get(ical.PropExceptionDates)
+				if exception != nil {
+					parsed, err := time.ParseInLocation(iCalTimeFormat, exception.Value, cal.tz)
+					if err != nil {
+						continue
+					}
+					if GetDateWithoutTime(t).Equal(GetDateWithoutTime(parsed)) {
+						// skip exceptions
+						continue
+					}
+				}
 				copyEvent := e
 				copyEvent.Props.SetDateTime(ical.PropDateTimeStart, t)
 				events = append(events, copyEvent)
@@ -81,4 +94,8 @@ func (cal Calendar) GetEventsOn(date time.Time) ([]ical.Event, error) {
 		return start1.Before(start2)
 	})
 	return events, nil
+}
+
+func GetDateWithoutTime(date time.Time) time.Time {
+	return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
 }
