@@ -106,14 +106,14 @@ func main() {
 	s := gocron.NewScheduler(timezone)
 
 	infoLog.Printf("Scheduling notifications for %s", notifyTime.Format("15:04"))
-	s.Every(1).Day().At(time.Now().Add(1 * time.Second)).Do(func() {
+	s.Every(1).Day().At(notifyTime).Do(func() {
 		infoLog.Println("Start Notification")
 		cal, err := calendar.NewCalendar(conf.Calendar)
 		if err != nil {
 			errLog.Printf("Could not read calendar info from %s\n", conf.Calendar)
 		}
 		cal.SetTimezone(timezone)
-		todayEvents, err := cal.GetEventsOn(time.Date(2023, 1, 26, 0, 0, 0, 0, timezone))
+		todayEvents, err := cal.GetEventsOn(time.Now())
 		if err != nil {
 			errLog.Println(err)
 		}
