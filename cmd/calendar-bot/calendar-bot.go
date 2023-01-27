@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/go-co-op/gocron"
-
 	"github.com/xHain-hackspace/calendar-bot/internal/calendar"
 	"github.com/xHain-hackspace/calendar-bot/internal/config"
 	"github.com/xHain-hackspace/calendar-bot/internal/message"
@@ -35,9 +34,6 @@ func main() {
 		os.Exit(1)
 	}
 	conf, err := config.Parse(*configFile)
-	if err != nil {
-		errLog.Fatal(err)
-	}
 	// validate roomID format for rooms publish in
 	validRomms := make([]string, 0)
 	for _, id := range conf.Rooms {
@@ -110,28 +106,26 @@ func main() {
 	s := gocron.NewScheduler(timezone)
 
 	infoLog.Printf("Scheduling notifications for %s", notifyTime.Format("15:04"))
-	s.Every(1).Day().At(time.Now().Add(1 * time.Second)).Do(func() {
+	s.Every(1).Day().At(notifyTime).Do(func() {
 		infoLog.Println("Start Notification")
-		cal := calendar.NewCalendar(conf.Calendar)
-		events, err := cal.GetEventsOn(time.Now())
+		cal, err := calendar.NewCalendar(conf.Calendar)
+		if err != nil {
+			errLog.Printf("Could not read calendar info from %s\n", conf.Calendar)
+		}
+		cal.SetTimezone(timezone)
+		todayEvents, err := cal.GetEventsOn(time.Now())
 		if err != nil {
 			errLog.Println(err)
-			return
 		}
-		if len(events) == 0 {
+		if len(todayEvents) == 0 {
 			infoLog.Println("No events today!")
 			return
 		}
-		infoLog.Printf("Sending notification with %d events\n", len(events))
-		tmplMsg, err := message.NewTemplatedMessage(*htmlTmplPath, *txtTmplPath, events, timezone)
-		if err != nil {
-			errLog.Println(err)
-			return
-		}
+		infoLog.Printf("Sending notification with %d events\n", len(todayEvents))
+		tmplMsg, err := message.NewTemplatedMessage(*htmlTmplPath, *txtTmplPath, todayEvents, timezone)
 		matrixMsg, err := tmplMsg.MatrixMessage()
 		if err != nil {
 			errLog.Println(err)
-			return
 		}
 		for _, room := range rooms {
 			if _, err := client.SendMessageEvent(room, event.EventMessage, matrixMsg); err != nil {

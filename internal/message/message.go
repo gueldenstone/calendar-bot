@@ -2,10 +2,11 @@ package message
 
 import (
 	"bytes"
+	"fmt"
 	"text/template"
 	"time"
 
-	"github.com/apognu/gocal"
+	"github.com/emersion/go-ical"
 	"maunium.net/go/mautrix/event"
 )
 
@@ -26,16 +27,45 @@ type TemplatedMessage struct {
 	txtTemplate  *template.Template
 }
 
-func NewTemplatedMessage(htmlTemplate, txtTemplate string, events []gocal.Event, tz *time.Location) (TemplatedMessage, error) {
+func NewTemplatedMessage(htmlTemplate, txtTemplate string, events []ical.Event, tz *time.Location) (TemplatedMessage, error) {
 	msg := TemplatedMessage{}
 	for _, evt := range events {
-		e := Event{
-			Summary:     evt.Summary,
-			StartTime:   evt.Start.Format(timeLayout),
-			EndTime:     evt.End.Format(timeLayout),
-			Description: evt.Description,
+		prop := evt.Props.Get(ical.PropSummary)
+		var summary string
+		if prop != nil {
+			summary = prop.Value
+		} else {
+			return msg, fmt.Errorf("no summary for event %s", evt.Name)
 		}
-		msg.Events = append(msg.Events, e)
+		startTime, err := evt.Props.DateTime(ical.PropDateTimeStart, tz)
+		if err != nil {
+			return msg, err
+		}
+		endTime, err := evt.Props.DateTime(ical.PropDateTimeEnd, tz)
+		if err != nil {
+			return msg, err
+		}
+		var description string
+		prop = evt.Props.Get(ical.PropDescription)
+		if prop != nil {
+			description = prop.Value
+		} else {
+			description = ""
+		}
+		evt := Event{
+			Summary:     summary,
+			StartTime:   startTime.Format(timeLayout),
+			EndTime:     endTime.Format(timeLayout),
+			Description: description,
+		}
+		if startTime.Hour() == 0 && startTime.Minute() == 0 {
+			evt.StartTime = ""
+		}
+		if endTime.Hour() == 0 && endTime.Minute() == 0 {
+			evt.EndTime = ""
+		}
+
+		msg.Events = append(msg.Events, evt)
 	}
 
 	funcMap := template.FuncMap{
