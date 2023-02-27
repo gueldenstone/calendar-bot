@@ -1,24 +1,26 @@
 package calendar
 
 import (
+	"log"
 	"net/http"
 	"sort"
 	"time"
 
 	"github.com/emersion/go-ical"
-	"github.com/teambition/rrule-go"
+	// "github.com/teambition/rrule-go"
 )
 
 type Calendar struct {
 	url string
 	tz  *time.Location
 	*ical.Calendar
+	*log.Logger
 }
 
-const iCalTimeFormat = "20060102T150405"
+// const iCalTimeFormat = "20060102T150405"
 
-func NewCalendar(url string) (Calendar, error) {
-	calendar := Calendar{url: url, tz: time.Local}
+func NewCalendar(url string, timeZone *time.Location, l *log.Logger) (Calendar, error) {
+	calendar := Calendar{url: url, tz: timeZone}
 	resp, err := http.Get(url)
 	if err != nil {
 		return calendar, err
@@ -32,6 +34,7 @@ func NewCalendar(url string) (Calendar, error) {
 		return calendar, err
 	}
 	calendar.Calendar = cal
+	calendar.Logger = l
 	return calendar, nil
 }
 
@@ -43,48 +46,32 @@ func (cal Calendar) GetEventsOn(date time.Time) ([]ical.Event, error) {
 	events := make([]ical.Event, 0)
 	todayStart := GetDateWithoutTime(date)
 	todayEnd := todayStart.Add(24 * time.Hour)
-	for _, e := range cal.Events() {
-		start, err := e.DateTimeStart(cal.tz)
+	for _, event := range cal.Events() {
+		start, err := event.DateTimeStart(cal.tz)
 		if err != nil {
 			return []ical.Event{}, err
 		}
-		end, err := e.DateTimeEnd(cal.tz)
+		end, err := event.DateTimeEnd(cal.tz)
 		if err != nil {
 			return []ical.Event{}, err
 		}
 		// regular event
-		if (start.After(todayStart) || start == todayStart) && start.Before(todayEnd) || (start.Before(todayStart) && end.After(todayEnd)) {
-			events = append(events, e)
+		if (start.After(todayStart) || start.Local() == todayStart.Local()) && start.Before(todayEnd) || (start.Before(todayStart) && end.After(todayEnd)) {
+			events = append(events, event)
 			continue
 		}
-		// recurring event?
-		roption, err := e.Props.RecurrenceRule()
+		// recurring event
+		reccurenceSet, err := event.RecurrenceSet(cal.tz)
 		if err != nil {
-			return []ical.Event{}, err
+			cal.Printf("could not get recurrence set: %s\n", err)
+			continue
 		}
-		if roption != nil {
-			roption.Dtstart = start
-			rule, err := rrule.NewRRule(*roption)
-			if err != nil {
-				return []ical.Event{}, err
-			}
-			times := rule.Between(todayStart, todayEnd, true)
-			for _, t := range times {
-				exception := e.Component.Props.Get(ical.PropExceptionDates)
-				if exception != nil {
-					parsed, err := time.ParseInLocation(iCalTimeFormat, exception.Value, cal.tz)
-					if err != nil {
-						continue
-					}
-					if GetDateWithoutTime(t).Equal(GetDateWithoutTime(parsed)) {
-						// skip exceptions
-						continue
-					}
-				}
-				copyEvent := e
-				copyEvent.Props.SetDateTime(ical.PropDateTimeStart, t)
-				events = append(events, copyEvent)
-			}
+		if reccurenceSet == nil {
+			// no recurrence
+			continue
+		}
+		if GetDateWithoutTime(reccurenceSet.After(todayStart, true)).Local() == GetDateWithoutTime(date).Local() {
+			events = append(events, event)
 		}
 	}
 	// sort events

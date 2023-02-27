@@ -34,6 +34,9 @@ func main() {
 		os.Exit(1)
 	}
 	conf, err := config.Parse(*configFile)
+	if err != nil {
+		errLog.Fatalf("could not read config file: %s", *configFile)
+	}
 	// validate roomID format for rooms publish in
 	validRomms := make([]string, 0)
 	for _, id := range conf.Rooms {
@@ -108,11 +111,10 @@ func main() {
 	infoLog.Printf("Scheduling notifications for %s", notifyTime.Format("15:04"))
 	s.Every(1).Day().At(notifyTime).Do(func() {
 		infoLog.Println("Start Notification")
-		cal, err := calendar.NewCalendar(conf.Calendar)
+		cal, err := calendar.NewCalendar(conf.Calendar, timezone, infoLog)
 		if err != nil {
 			errLog.Printf("Could not read calendar info from %s\n", conf.Calendar)
 		}
-		cal.SetTimezone(timezone)
 		todayEvents, err := cal.GetEventsOn(time.Now())
 		if err != nil {
 			errLog.Println(err)
