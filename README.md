@@ -1,8 +1,8 @@
 # Calendar-Bot
 
 ![test workflow](https://github.com/gueldenstone/calendar-bot/actions/workflows/go.yml/badge.svg)
+![build](https://github.com/gueldenstone/calendar-bot/actions/workflows/docker-publish.yml/badge.svg)
 [<img src="https://img.shields.io/badge/dockerhub-image-blue.svg?logo=Docker">](https://hub.docker.com/r/gueldenstone/calendar-bot)
-)
 
 ## Example configuration
 
