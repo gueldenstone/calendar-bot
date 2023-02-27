@@ -1,3 +1,3 @@
 # Calendar-Bot
 
-![example workflow](https://github.com/gueldenston/calendar-bot/actions/workflows/go.yml/badge.svg)
+![example workflow](https://github.com/gueldenstone/calendar-bot/actions/workflows/go.yml/badge.svg)
