@@ -126,7 +126,7 @@ func TestCalendar_GetEventsOn(t *testing.T) {
 				return
 			}
 			if len(got) != len(tt.want) {
-				t.Errorf("Calendar.GetEventsOn() not the right amount of events: got = %v, want %v", got, tt.want)
+				t.Fatalf("Calendar.GetEventsOn() not the right amount of events: got = %v, want %v", got, tt.want)
 			}
 			for i := range got {
 				gotUID := got[i].Props.Get(ical.PropUID).Value
