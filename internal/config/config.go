@@ -20,11 +20,11 @@ func Parse(path string) (Config, error) {
 	conf := Config{}
 	yml, err := os.ReadFile(path)
 	if err != nil {
-		return conf, fmt.Errorf("Reading config file: %w", err)
+		return conf, fmt.Errorf("reading config file: %w", err)
 	}
 	err = yaml.Unmarshal(yml, &conf)
 	if err != nil {
-		return conf, fmt.Errorf("Reading config file: %w", err)
+		return conf, fmt.Errorf("reading config file: %w", err)
 	}
 	return conf, nil
 }
