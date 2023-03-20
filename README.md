@@ -2,7 +2,6 @@
 
 ![test workflow](https://github.com/gueldenstone/calendar-bot/actions/workflows/go.yml/badge.svg)
 ![build](https://github.com/gueldenstone/calendar-bot/actions/workflows/docker-publish.yml/badge.svg)
-[<img src="https://img.shields.io/badge/dockerhub-image-blue.svg?logo=Docker">](https://hub.docker.com/r/gueldenstone/calendar-bot)
 
 This is a simple matrix bot that will monitor a calendar given by a URL and post events as `HTML` and `Plain text` according to the given templates. The bot is intended to be run in a docker imager, but feel free to build the the application like so:
 
