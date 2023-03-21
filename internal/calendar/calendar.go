@@ -80,7 +80,18 @@ func (cal Calendar) GetEventsOn(date time.Time) ([]ical.Event, error) {
 		start2, _ := events[j].DateTimeStart(cal.tz)
 		return start1.Before(start2)
 	})
-	return events, nil
+
+	// check for doubles via uid
+	uids := make(map[string]struct{})
+	dedupedEvents := make([]ical.Event, 0)
+	for _, e := range events {
+		uid := e.Props.Get(ical.PropUID).Value
+		if _, ok := uids[uid]; !ok {
+			dedupedEvents = append(dedupedEvents, e)
+			uids[uid] = struct{}{}
+		}
+	}
+	return dedupedEvents, nil
 }
 
 func GetDateWithoutTime(date time.Time) time.Time {
