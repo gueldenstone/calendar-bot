@@ -14,15 +14,22 @@ const (
 	xHainDump_1 = "testData.txt"
 )
 
-func NewWantedCalendarEventWithUIDSet(uid string) ical.Event {
+func NewWantedCalendarEventWithUIDAndSummary(uid string, summary string) ical.Event {
 	return ical.Event{
 		Component: &ical.Component{
 			Name: ical.CompEvent,
 			Props: ical.Props{
+				ical.PropSummary: []ical.Prop{
+					{
+						Name:   ical.PropSummary,
+						Params: make(ical.Params),
+						Value:  summary,
+					},
+				},
 				ical.PropUID: []ical.Prop{
 					{
 						Name:   ical.PropUID,
-						Params: make(ical.Params, 0),
+						Params: make(ical.Params),
 						Value:  uid,
 					},
 				},
@@ -51,45 +58,67 @@ func TestCalendar_GetEventsOn(t *testing.T) {
 			name:         "LED Workshop recurring",
 			testDataFile: getCalendarDataFromFile(xHainDump_1),
 			args: args{
-				date: time.Date(2023, 02, 23, 0, 0, 0, 0, time.Local),
+				date: time.Date(2023, 2, 23, 0, 0, 0, 0, time.Local),
 			},
 			wantErr: false,
 			want: []ical.Event{
-				NewWantedCalendarEventWithUIDSet("dae1e4eb-7213-4620-bc9f-1bdb8a023af9"),
+				NewWantedCalendarEventWithUIDAndSummary("dae1e4eb-7213-4620-bc9f-1bdb8a023af9", "Workshop - Learn PCB design with KiCad"),
+			},
+		},
+		{
+			name:         "LED Workshop recurring exception",
+			testDataFile: getCalendarDataFromFile(xHainDump_1),
+			args: args{
+				date: time.Date(2023, 3, 2, 0, 0, 0, 0, time.Local),
+			},
+			wantErr: false,
+			want: []ical.Event{
+				NewWantedCalendarEventWithUIDAndSummary("66adcfc4-6827-45a2-a5b4-655923d5dd62", "How to use the latest AIs in your daily workflow - for... everything?"),
+			},
+		},
+		{
+			name:         "Gespräch unter Bäumen instances",
+			testDataFile: getCalendarDataFromFile(xHainDump_1),
+			args: args{
+				date: time.Date(2023, 3, 21, 0, 0, 0, 0, time.Local),
+			},
+			wantErr: false,
+			want: []ical.Event{
+				NewWantedCalendarEventWithUIDAndSummary("5fb7f276-54d6-4c30-a993-92cfe962e41b", "Gespräch unter Bäumen (mit Elisa Filevich)"),
 			},
 		},
 		{
 			name:         "Drones' night",
 			testDataFile: getCalendarDataFromFile(xHainDump_1),
 			args: args{
-				date: time.Date(2023, 02, 24, 0, 0, 0, 0, time.Local),
+				date: time.Date(2023, 2, 24, 0, 0, 0, 0, time.Local),
 			},
 			wantErr: false,
 			want: []ical.Event{
-				NewWantedCalendarEventWithUIDSet("1ec26b84-60e1-437d-a455-db6404dff879"),
+				NewWantedCalendarEventWithUIDAndSummary("1ec26b84-60e1-437d-a455-db6404dff879", "Drones' night"),
 			},
 		},
 		{
 			name:         "offener Montag",
 			testDataFile: getCalendarDataFromFile(xHainDump_1),
 			args: args{
-				date: time.Date(2023, 02, 27, 0, 0, 0, 0, time.Local),
+				date: time.Date(2023, 2, 27, 0, 0, 0, 0, time.Local),
 			},
 			wantErr: false,
 			want: []ical.Event{
-				NewWantedCalendarEventWithUIDSet("c9158eec-083a-4798-9860-99c4a83cce0f"),
+				NewWantedCalendarEventWithUIDAndSummary("c9158eec-083a-4798-9860-99c4a83cce0f", "offener Montag"),
 			},
 		},
 		{
 			name:         "Multiple events: XMPP/Wednesday Meeting",
 			testDataFile: getCalendarDataFromFile(xHainDump_1),
 			args: args{
-				date: time.Date(2023, 02, 8, 0, 0, 0, 0, time.Local),
+				date: time.Date(2023, 2, 8, 0, 0, 0, 0, time.Local),
 			},
 			wantErr: false,
 			want: []ical.Event{
-				NewWantedCalendarEventWithUIDSet("3591c731-0e27-4902-9ae0-8748d46841f3"),
-				NewWantedCalendarEventWithUIDSet("1695d4c9-aa37-4b52-bda9-2132ac92e3a2"),
+				NewWantedCalendarEventWithUIDAndSummary("3591c731-0e27-4902-9ae0-8748d46841f3", "XMPP-Meetup"),
+				NewWantedCalendarEventWithUIDAndSummary("1695d4c9-aa37-4b52-bda9-2132ac92e3a2", "xHain Wednesday meeting"),
 			},
 		},
 		{
@@ -100,8 +129,8 @@ func TestCalendar_GetEventsOn(t *testing.T) {
 			},
 			wantErr: false,
 			want: []ical.Event{
-				NewWantedCalendarEventWithUIDSet("290b69b7-aaaf-47d4-88d1-d42366e36163"),
-				NewWantedCalendarEventWithUIDSet("77b564a3-4e8c-4e3b-b9db-990e622d04ff"),
+				NewWantedCalendarEventWithUIDAndSummary("290b69b7-aaaf-47d4-88d1-d42366e36163", "Kindernachmittag"),
+				NewWantedCalendarEventWithUIDAndSummary("77b564a3-4e8c-4e3b-b9db-990e622d04ff", "xHain @ Camp23 Brainstorming"),
 			},
 		},
 	}
@@ -117,7 +146,7 @@ func TestCalendar_GetEventsOn(t *testing.T) {
 			cal := Calendar{
 				url:      "file",
 				tz:       time.Local,
-				Logger:   log.New(os.Stdout, "[TEST]", log.Ldate|log.Ltime|log.Lmsgprefix|log.Lshortfile),
+				Logger:   log.New(os.Stdout, "[TEST] ", log.Ldate|log.Ltime|log.Lmsgprefix|log.Lshortfile),
 				Calendar: calendar,
 			}
 			got, err := cal.GetEventsOn(tt.args.date)
