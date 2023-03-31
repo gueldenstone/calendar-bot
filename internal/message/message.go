@@ -3,6 +3,7 @@ package message
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"text/template"
 	"time"
 
@@ -15,10 +16,11 @@ const (
 )
 
 type Event struct {
-	Summary     string
-	StartTime   string
-	EndTime     string
-	Description string
+	Summary         string
+	StartTime       string
+	EndTime         string
+	HtmlDescription string
+	TxtDescription  string
 }
 
 type TemplatedMessage struct {
@@ -53,10 +55,11 @@ func NewTemplatedMessage(htmlTemplate, txtTemplate string, events []ical.Event, 
 			description = ""
 		}
 		evt := Event{
-			Summary:     summary,
-			StartTime:   startTime.Format(timeLayout),
-			EndTime:     endTime.Format(timeLayout),
-			Description: description,
+			Summary:         summary,
+			StartTime:       startTime.Format(timeLayout),
+			EndTime:         endTime.Format(timeLayout),
+			HtmlDescription: strings.ReplaceAll(strings.ReplaceAll(description, "\\n", "<br>"), "\\", ""),
+			TxtDescription:  description,
 		}
 		if startTime.Hour() == 0 && startTime.Minute() == 0 {
 			evt.StartTime = ""
