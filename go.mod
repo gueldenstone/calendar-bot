@@ -1,4 +1,4 @@
-module github.com/xHain-hackspace/calendar-bot
+module github.com/gueldenstone/calendar-bot
 
 go 1.18
 

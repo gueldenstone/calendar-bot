@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/go-co-op/gocron"
-	"github.com/xHain-hackspace/calendar-bot/internal/calendar"
-	"github.com/xHain-hackspace/calendar-bot/internal/config"
-	"github.com/xHain-hackspace/calendar-bot/internal/message"
-	"maunium.net/go/mautrix"
+	"github.com/gueldenstone/calendar-bot/internal/config"
+	"github.com/gueldenstone/calendar-bot/internal/matrix"
+	"github.com/gueldenstone/calendar-bot/internal/message"
+	"github.com/gueldenstone/calendar-bot/pkg/calendar"
 	"maunium.net/go/mautrix/event"
 	"maunium.net/go/mautrix/id"
 )
@@ -40,7 +40,7 @@ func main() {
 	// validate roomID format for rooms publish in
 	validRomms := make([]string, 0)
 	for _, id := range conf.Rooms {
-		if !strings.HasPrefix(id, "!") && !strings.HasPrefix(id, "#") {
+		if !matrix.IsValidRoomId(id) {
 			errLog.Printf("RoomID '%s' is not valid, ignoring this room\n", id)
 		} else {
 			validRomms = append(validRomms, id)
@@ -52,23 +52,9 @@ func main() {
 	conf.Rooms = validRomms
 
 	infoLog.Println("Logging into", conf.Homeserver, "as", conf.Username)
-	client, err := mautrix.NewClient(conf.Homeserver, "", "")
+	client, err := matrix.LoginToHomeServer(conf.Homeserver, conf.Username, conf.Password)
 	if err != nil {
 		errLog.Fatal(err)
-	}
-	for {
-		_, err = client.Login(&mautrix.ReqLogin{
-			Type:             "m.login.password",
-			Identifier:       mautrix.UserIdentifier{Type: mautrix.IdentifierTypeUser, User: conf.Username},
-			Password:         conf.Password,
-			StoreCredentials: true,
-		})
-		if err != nil {
-			errLog.Println(err)
-			time.Sleep(30 * time.Second)
-		} else {
-			break
-		}
 	}
 	defer func() {
 		if _, err := client.Logout(); err != nil {
