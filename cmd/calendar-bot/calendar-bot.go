@@ -93,7 +93,6 @@ func main() {
 	}
 	timezone := time.Local
 	s := gocron.NewScheduler(timezone)
-
 	infoLog.Printf("Scheduling notifications for %s", notifyTime.Format("15:04"))
 	s.Every(1).Day().At(notifyTime).Do(func() {
 		infoLog.Println("Start Notification")
@@ -110,6 +109,7 @@ func main() {
 			return
 		}
 		infoLog.Printf("Sending notification with %d events\n", len(todayEvents))
+
 		tmplMsg, err := message.NewTemplatedMessage(*htmlTmplPath, *txtTmplPath, todayEvents, timezone)
 		if err != nil {
 			errLog.Println(err)

@@ -2,12 +2,12 @@ package message
 
 import (
 	"bytes"
-	"fmt"
 	"strings"
 	"text/template"
 	"time"
 
-	"github.com/emersion/go-ical"
+	"github.com/gueldenstone/calendar-bot/pkg/calendar"
+
 	"maunium.net/go/mautrix/event"
 )
 
@@ -29,42 +29,21 @@ type TemplatedMessage struct {
 	txtTemplate  *template.Template
 }
 
-func NewTemplatedMessage(htmlTemplate, txtTemplate string, events []ical.Event, tz *time.Location) (TemplatedMessage, error) {
+func NewTemplatedMessage(htmlTemplate, txtTemplate string, events []calendar.EventData, tz *time.Location) (TemplatedMessage, error) {
 	msg := TemplatedMessage{}
 	for _, evt := range events {
-		prop := evt.Props.Get(ical.PropSummary)
-		var summary string
-		if prop != nil {
-			summary = prop.Value
-		} else {
-			return msg, fmt.Errorf("no summary for event %s", evt.Name)
-		}
-		startTime, err := evt.Props.DateTime(ical.PropDateTimeStart, tz)
-		if err != nil {
-			return msg, err
-		}
-		endTime, err := evt.Props.DateTime(ical.PropDateTimeEnd, tz)
-		if err != nil {
-			return msg, err
-		}
-		var description string
-		prop = evt.Props.Get(ical.PropDescription)
-		if prop != nil {
-			description = prop.Value
-		} else {
-			description = ""
-		}
 		evt := Event{
-			Summary:         summary,
-			StartTime:       startTime.Format(timeLayout),
-			EndTime:         endTime.Format(timeLayout),
-			HtmlDescription: strings.ReplaceAll(strings.ReplaceAll(description, "\\n", "<br>"), "\\", ""),
-			TxtDescription:  description,
+			Summary:         evt.Summary,
+			StartTime:       evt.Start.In(tz).Format(timeLayout),
+			EndTime:         evt.End.In(tz).Format(timeLayout),
+			HtmlDescription: strings.ReplaceAll(strings.ReplaceAll(evt.Description, "\\n", "<br>"), "\\", ""),
+			TxtDescription:  evt.Description,
 		}
-		if startTime.Hour() == 0 && startTime.Minute() == 0 {
+
+		if evt.Start.Hour() == 0 && evt.Start.Minute() == 0 {
 			evt.StartTime = ""
 		}
-		if endTime.Hour() == 0 && endTime.Minute() == 0 {
+		if evt.End.Hour() == 0 && evt.End.Minute() == 0 {
 			evt.EndTime = ""
 		}
 
