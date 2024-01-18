@@ -97,7 +97,7 @@ func main() {
 	infoLog.Printf("Scheduling notifications for %s", notifyTime.Format("15:04"))
 	s.Every(1).Day().At(notifyTime).Do(func() {
 		infoLog.Println("Start Notification")
-		cal, err := calendar.NewCalendar(conf.Calendar, timezone, infoLog)
+		cal, err := calendar.NewCalendar(conf.Calendar, infoLog)
 		if err != nil {
 			errLog.Printf("Could not read calendar info from %s\n", conf.Calendar)
 		}

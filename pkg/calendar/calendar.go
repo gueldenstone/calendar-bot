@@ -17,10 +17,8 @@ type Calendar struct {
 	*log.Logger
 }
 
-// const iCalTimeFormat = "20060102T150405"
-
-func NewCalendar(url string, timeZone *time.Location, l *log.Logger) (Calendar, error) {
-	calendar := Calendar{url: url, tz: timeZone}
+func NewCalendar(url string, l *log.Logger) (Calendar, error) {
+	calendar := Calendar{url: url, tz: time.Local}
 	resp, err := http.Get(url)
 	if err != nil {
 		return calendar, err
@@ -36,10 +34,6 @@ func NewCalendar(url string, timeZone *time.Location, l *log.Logger) (Calendar, 
 	calendar.Calendar = cal
 	calendar.Logger = l
 	return calendar, nil
-}
-
-func (cal *Calendar) SetTimezone(tz *time.Location) {
-	cal.tz = tz
 }
 
 func (cal Calendar) GetEventsOn(date time.Time) ([]ical.Event, error) {
@@ -95,5 +89,5 @@ func (cal Calendar) GetEventsOn(date time.Time) ([]ical.Event, error) {
 }
 
 func GetDateWithoutTime(date time.Time) time.Time {
-	return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+	return time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.Local)
 }
