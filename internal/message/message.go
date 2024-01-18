@@ -32,7 +32,7 @@ type TemplatedMessage struct {
 func NewTemplatedMessage(htmlTemplate, txtTemplate string, events []calendar.EventData, tz *time.Location) (TemplatedMessage, error) {
 	msg := TemplatedMessage{}
 	for _, evt := range events {
-		evt := Event{
+		event := Event{
 			Summary:         evt.Summary,
 			StartTime:       evt.Start.In(tz).Format(timeLayout),
 			EndTime:         evt.End.In(tz).Format(timeLayout),
@@ -40,14 +40,7 @@ func NewTemplatedMessage(htmlTemplate, txtTemplate string, events []calendar.Eve
 			TxtDescription:  evt.Description,
 		}
 
-		if evt.Start.Hour() == 0 && evt.Start.Minute() == 0 {
-			evt.StartTime = ""
-		}
-		if evt.End.Hour() == 0 && evt.End.Minute() == 0 {
-			evt.EndTime = ""
-		}
-
-		msg.Events = append(msg.Events, evt)
+		msg.Events = append(msg.Events, event)
 	}
 
 	funcMap := template.FuncMap{

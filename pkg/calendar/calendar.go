@@ -79,12 +79,6 @@ func (cal Calendar) GetEventsOn(date time.Time) ([]EventData, error) {
 			events = append(events, event)
 		}
 	}
-	// sort events
-	sort.SliceStable(events, func(i, j int) bool {
-		start1, _ := events[i].DateTimeStart(cal.tz)
-		start2, _ := events[j].DateTimeStart(cal.tz)
-		return start1.Before(start2)
-	})
 
 	// check for doubles via uid
 	uids := make(map[string]struct{})
@@ -106,6 +100,13 @@ func (cal Calendar) GetEventsOn(date time.Time) ([]EventData, error) {
 		}
 		eventDatas = append(eventDatas, eventData)
 	}
+
+	// sort events
+	sort.SliceStable(eventDatas, func(i, j int) bool {
+		start1 := eventDatas[i].Start
+		start2 := eventDatas[j].Start
+		return start1.Before(start2)
+	})
 
 	return eventDatas, nil
 }

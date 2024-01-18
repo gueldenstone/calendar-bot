@@ -2,6 +2,6 @@
 <ul>
   {{range .Events}}
   <li>{{.Summary}}{{ if ne .StartTime `` }}: {{.StartTime}} - {{.EndTime}} {{end}} {{ if ne .HtmlDescription `` }}
-    ({{.HtmlDescription}}) {{end}}</li>
+    ({{.HtmlDescription}}) {{end}}</li> <br>
   {{end}}
 </ul>

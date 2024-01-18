@@ -115,7 +115,7 @@ func TestCalendar_GetEventsOn(t *testing.T) {
 					"c9158eec-083a-4798-9860-99c4a83cce0f",
 					"offener Montag",
 					time.Date(2023, 2, 27, 18, 0, 0, 0, time.Local),
-					time.Date(2023, 2, 27, 22, 0, 0, 0, time.Local),
+					time.Date(2023, 2, 27, 23, 59, 0, 0, time.Local),
 				),
 			},
 		},
