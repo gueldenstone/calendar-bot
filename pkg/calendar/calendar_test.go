@@ -14,8 +14,8 @@ const (
 	xHainDump_1 = "testData.txt"
 )
 
-func NewWantedCalendarEvent(uid string, summary string, start time.Time, end time.Time) EventData {
-	return EventData{
+func NewWantedCalendarEvent(uid string, summary string, start time.Time, end time.Time) Event {
+	return Event{
 		UID:     uid,
 		Summary: summary,
 		Start:   start,
@@ -36,7 +36,7 @@ func TestCalendar_GetEventsOn(t *testing.T) {
 		name         string
 		testDataFile io.ReadCloser
 		args         args
-		want         []EventData
+		want         []Event
 		wantErr      bool
 	}{
 		{
@@ -46,7 +46,7 @@ func TestCalendar_GetEventsOn(t *testing.T) {
 				date: time.Date(2023, 2, 23, 0, 0, 0, 0, time.Local),
 			},
 			wantErr: false,
-			want: []EventData{
+			want: []Event{
 				NewWantedCalendarEvent(
 					"dae1e4eb-7213-4620-bc9f-1bdb8a023af9",
 					"Workshop - Learn PCB design with KiCad",
@@ -62,7 +62,7 @@ func TestCalendar_GetEventsOn(t *testing.T) {
 				date: time.Date(2023, 3, 2, 0, 0, 0, 0, time.Local),
 			},
 			wantErr: false,
-			want: []EventData{
+			want: []Event{
 				NewWantedCalendarEvent(
 					"66adcfc4-6827-45a2-a5b4-655923d5dd62",
 					"How to use the latest AIs in your daily workflow - for... everything?",
@@ -78,7 +78,7 @@ func TestCalendar_GetEventsOn(t *testing.T) {
 				date: time.Date(2023, 3, 21, 0, 0, 0, 0, time.Local),
 			},
 			wantErr: false,
-			want: []EventData{
+			want: []Event{
 				NewWantedCalendarEvent(
 					"5fb7f276-54d6-4c30-a993-92cfe962e41b",
 					"Gespräch unter Bäumen (mit Elisa Filevich)",
@@ -94,7 +94,7 @@ func TestCalendar_GetEventsOn(t *testing.T) {
 				date: time.Date(2023, 2, 24, 0, 0, 0, 0, time.Local),
 			},
 			wantErr: false,
-			want: []EventData{
+			want: []Event{
 				NewWantedCalendarEvent(
 					"1ec26b84-60e1-437d-a455-db6404dff879",
 					"Drones' night",
@@ -110,7 +110,7 @@ func TestCalendar_GetEventsOn(t *testing.T) {
 				date: time.Date(2023, 2, 27, 0, 0, 0, 0, time.Local),
 			},
 			wantErr: false,
-			want: []EventData{
+			want: []Event{
 				NewWantedCalendarEvent(
 					"c9158eec-083a-4798-9860-99c4a83cce0f",
 					"offener Montag",
@@ -126,7 +126,7 @@ func TestCalendar_GetEventsOn(t *testing.T) {
 				date: time.Date(2023, 2, 8, 0, 0, 0, 0, time.Local),
 			},
 			wantErr: false,
-			want: []EventData{
+			want: []Event{
 				NewWantedCalendarEvent(
 					"3591c731-0e27-4902-9ae0-8748d46841f3",
 					"XMPP-Meetup",
@@ -148,7 +148,7 @@ func TestCalendar_GetEventsOn(t *testing.T) {
 				date: time.Date(2023, 1, 22, 0, 0, 0, 0, time.Local),
 			},
 			wantErr: false,
-			want: []EventData{
+			want: []Event{
 				NewWantedCalendarEvent(
 					"290b69b7-aaaf-47d4-88d1-d42366e36163",
 					"Kindernachmittag",
@@ -173,11 +173,11 @@ func TestCalendar_GetEventsOn(t *testing.T) {
 				t.Fatalf("could not open test data file: %s", tt.testDataFile)
 			}
 
-			cal := Calendar{
-				url:      "file",
-				tz:       time.Local,
-				Logger:   log.New(os.Stdout, "[TEST] ", log.Ldate|log.Ltime|log.Lmsgprefix|log.Lshortfile),
-				Calendar: calendar,
+			cal := IcalData{
+				url:    "file",
+				tz:     time.Local,
+				logger: log.New(os.Stdout, "[TEST] ", log.Ldate|log.Ltime|log.Lmsgprefix|log.Lshortfile),
+				parsed: calendar,
 			}
 			got, err := cal.GetEventsOn(tt.args.date)
 			if (err != nil) != tt.wantErr {
