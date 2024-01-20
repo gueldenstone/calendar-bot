@@ -29,7 +29,7 @@ type TemplatedMessage struct {
 	txtTemplate  *template.Template
 }
 
-func NewTemplatedMessage(htmlTemplate, txtTemplate string, events []calendar.EventData, tz *time.Location) (TemplatedMessage, error) {
+func NewTemplatedMessage(htmlTemplate, txtTemplate string, events []calendar.Event, tz *time.Location) (TemplatedMessage, error) {
 	msg := TemplatedMessage{}
 	for _, evt := range events {
 		event := Event{
