@@ -98,8 +98,8 @@ func TestCalendar_GetEventsOn(t *testing.T) {
 				NewWantedCalendarEvent(
 					"1ec26b84-60e1-437d-a455-db6404dff879",
 					"Drones' night",
-					time.Date(2023, 2, 24, 18, 0, 0, 0, time.Local),
-					time.Date(2023, 2, 24, 21, 0, 0, 0, time.Local),
+					time.Date(2023, 2, 24, 19, 15, 0, 0, time.Local),
+					time.Date(2023, 2, 24, 22, 30, 0, 0, time.Local),
 				),
 			},
 		},
