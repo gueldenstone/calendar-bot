@@ -48,10 +48,44 @@ func NewCalendar(url string, l *log.Logger) (Calendar, error) {
 }
 
 func (cal Calendar) GetEventsOn(date time.Time) ([]EventData, error) {
-	events := make([]ical.Event, 0)
+	all_events := make(map[string]ical.Event)
+	selected_events := make([]ical.Event, 0)
+
 	todayStart := GetDateWithoutTime(date)
 	todayEnd := todayStart.Add(24 * time.Hour)
 	for _, event := range cal.Events() {
+		uid := event.Props.Get(ical.PropUID).Value
+
+		// check for doubles via uid
+		if _, ok := all_events[uid]; ok {
+
+			createdProp := all_events[uid].Props.Get(ical.PropCreated)
+			if createdProp == nil {
+				continue
+			}
+			created_existing, err := createdProp.DateTime(cal.tz)
+			if err != nil {
+				continue
+			}
+
+			createdNewProp := event.Props.Get(ical.PropCreated)
+			if createdNewProp == nil {
+				continue
+			}
+
+			created_new, err := createdNewProp.DateTime(cal.tz)
+			if err != nil {
+				continue
+			}
+
+			if created_existing.After(created_new) {
+				continue
+			}
+		}
+		all_events[event.Props.Get(ical.PropUID).Value] = event
+	}
+
+	for _, event := range all_events {
 		start, err := event.DateTimeStart(cal.tz)
 		if err != nil {
 			return []EventData{}, err
@@ -62,7 +96,7 @@ func (cal Calendar) GetEventsOn(date time.Time) ([]EventData, error) {
 		}
 		// regular event
 		if (start.After(todayStart) || start.Local() == todayStart.Local()) && start.Before(todayEnd) || (start.Before(todayStart) && end.After(todayEnd)) {
-			events = append(events, event)
+			selected_events = append(selected_events, event)
 			continue
 		}
 		// recurring event
@@ -76,24 +110,13 @@ func (cal Calendar) GetEventsOn(date time.Time) ([]EventData, error) {
 			continue
 		}
 		if GetDateWithoutTime(reccurenceSet.After(todayStart, true)).Local() == GetDateWithoutTime(date).Local() {
-			events = append(events, event)
-		}
-	}
-
-	// check for doubles via uid
-	uids := make(map[string]struct{})
-	dedupedEvents := make([]ical.Event, 0)
-	for _, e := range events {
-		uid := e.Props.Get(ical.PropUID).Value
-		if _, ok := uids[uid]; !ok {
-			dedupedEvents = append(dedupedEvents, e)
-			uids[uid] = struct{}{}
+			selected_events = append(selected_events, event)
 		}
 	}
 
 	// Convert ical.Events to EventData
 	eventDatas := make([]EventData, 0)
-	for _, event := range dedupedEvents {
+	for _, event := range selected_events {
 		eventData, err := cal.ConvertToEventData(event, date)
 		if err != nil {
 			return nil, err
