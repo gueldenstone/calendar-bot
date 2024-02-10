@@ -100,7 +100,7 @@ func main() {
 		if err != nil {
 			errLog.Printf("Could not read calendar info from %s\n", conf.Calendar)
 		}
-		todayEvents, err := cal.GetEventsOn(time.Now())
+		todayEvents, err := cal.GetEventsOnDay(time.Now())
 		if err != nil {
 			errLog.Println(err)
 		}

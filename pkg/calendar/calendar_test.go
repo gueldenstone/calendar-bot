@@ -28,7 +28,7 @@ func getCalendarDataFromFile(file string) *os.File {
 	return f
 }
 
-func TestCalendar_GetEventsOn(t *testing.T) {
+func TestCalendar_GetEventsOnDay(t *testing.T) {
 	type args struct {
 		date time.Time
 	}
@@ -179,23 +179,23 @@ func TestCalendar_GetEventsOn(t *testing.T) {
 				logger: log.New(os.Stdout, "[TEST] ", log.Ldate|log.Ltime|log.Lmsgprefix|log.Lshortfile),
 				parsed: calendar,
 			}
-			got, err := cal.GetEventsOn(tt.args.date)
+			got, err := cal.GetEventsOnDay(tt.args.date)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Calendar.GetEventsOn() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Calendar.GetEventsOnDay() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if len(got) != len(tt.want) {
-				t.Fatalf("Calendar.GetEventsOn() not the right amount of events: got = %v, want %v", got, tt.want)
+				t.Fatalf("Calendar.GetEventsOnDay() not the right amount of events: got = %v, want %v", got, tt.want)
 			}
 			for i := range got {
 				if got[i].UID != tt.want[i].UID {
-					t.Errorf("Calendar.GetEventsOn() got UID = %v, want UID %v", got[i].UID, tt.want[i].UID)
+					t.Errorf("Calendar.GetEventsOnDay() got UID = %v, want UID %v", got[i].UID, tt.want[i].UID)
 				}
 				if !got[i].Start.Equal(tt.want[i].Start) {
-					t.Errorf("Calendar.GetEventsOn() got Start = %v, want Start %v", got[i].Start, tt.want[i].Start)
+					t.Errorf("Calendar.GetEventsOnDay() got Start = %v, want Start %v", got[i].Start, tt.want[i].Start)
 				}
 				if !got[i].End.Equal(tt.want[i].End) {
-					t.Errorf("Calendar.GetEventsOn() got End = %v, want End %v", got[i].End, tt.want[i].End)
+					t.Errorf("Calendar.GetEventsOnDay() got End = %v, want End %v", got[i].End, tt.want[i].End)
 				}
 			}
 		})
