@@ -48,8 +48,24 @@ func ImportCalendar(url string, l *log.Logger) (IcalData, error) {
 	return data, nil
 }
 
-// Assembles a list of events on a given date
-func (data IcalData) GetEventsOn(date time.Time) ([]Event, error) {
+// Assembles a list of events on a given date range
+func (data IcalData) GetEventsOfRange(start time.Time, end time.Time) ([]Event, error) {
+	var rangeEvents []Event
+
+	for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
+		dailyEvents, err := data.GetEventsOnDay(d)
+		if err != nil {
+			data.logger.Printf("could not get events for day %s: %s\n", d, err)
+			continue
+		}
+		rangeEvents = append(rangeEvents, dailyEvents...)
+	}
+
+	return rangeEvents, nil
+}
+
+// Assembles a list of events on a single day
+func (data IcalData) GetEventsOnDay(date time.Time) ([]Event, error) {
 
 	allEvents := make(map[string]ical.Event)
 	selectedEvents := make([]Event, 0)
