@@ -96,13 +96,10 @@ func main() {
 	infoLog.Printf("Scheduling notifications for %s", notifyTime.Format("15:04"))
 	s.Every(1).Day().At(notifyTime).Do(func() {
 		infoLog.Println("Start Notification")
-		cal, err := calendar.ImportCalendar(conf.Calendar, infoLog)
-		if err != nil {
-			errLog.Printf("Could not read calendar info from %s\n", conf.Calendar)
-		}
-		todayEvents, err := cal.GetEventsOn(time.Now())
+		todayEvents, err := calendar.GetEventsOn(time.Now())
 		if err != nil {
 			errLog.Println(err)
+			return
 		}
 		if len(todayEvents) == 0 {
 			infoLog.Println("No events today!")
