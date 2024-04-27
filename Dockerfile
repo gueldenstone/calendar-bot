@@ -1,7 +1,7 @@
 ##
 ## Build
 ##
-FROM golang:1.18-alpine AS build
+FROM golang:1.22-alpine AS build
 
 WORKDIR /app
 
@@ -22,6 +22,7 @@ FROM alpine
 
 WORKDIR /
 RUN apk add --no-cache tzdata
+RUN ln -s /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 RUN adduser -D calendar-bot
 USER calendar-bot
 COPY --from=build /calendar-bot /calendar-bot

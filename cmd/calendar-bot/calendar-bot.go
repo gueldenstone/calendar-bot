@@ -18,12 +18,16 @@ import (
 
 const flags = log.Ldate | log.Ltime | log.Lmsgprefix
 
-var errLog = log.New(os.Stderr, "[ERROR] ", flags|log.Lshortfile)
-var infoLog = log.New(os.Stdout, "[INFO] ", flags)
+var (
+	errLog  = log.New(os.Stderr, "[ERROR] ", flags|log.Lshortfile)
+	infoLog = log.New(os.Stdout, "[INFO] ", flags)
+)
 
-var configFile = flag.String("config", "", "Path to config file")
-var htmlTmplPath = flag.String("html", "", "Path to html template file")
-var txtTmplPath = flag.String("txt", "", "Path to txt template file")
+var (
+	configFile   = flag.String("config", "", "Path to config file")
+	htmlTmplPath = flag.String("html", "", "Path to html template file")
+	txtTmplPath  = flag.String("txt", "", "Path to txt template file")
+)
 
 func main() {
 	flag.Parse()
@@ -94,15 +98,17 @@ func main() {
 	timezone := time.Local
 	s := gocron.NewScheduler(timezone)
 	infoLog.Printf("Scheduling notifications for %s", notifyTime.Format("15:04"))
-	s.Every(1).Day().At(notifyTime).Do(func() {
+	_, err = s.Every(1).Day().At(time.Now().Add(2 * time.Second)).Do(func() {
 		infoLog.Println("Start Notification")
-		cal, err := calendar.ImportCalendar(conf.Calendar, infoLog)
+		cal, err := calendar.NewNextcloudCalendar(conf.Calendar)
 		if err != nil {
-			errLog.Printf("Could not read calendar info from %s\n", conf.Calendar)
+			errLog.Println(err)
+			return
 		}
 		todayEvents, err := cal.GetEventsOn(time.Now())
 		if err != nil {
 			errLog.Println(err)
+			return
 		}
 		if len(todayEvents) == 0 {
 			infoLog.Println("No events today!")
@@ -127,5 +133,9 @@ func main() {
 			}
 		}
 	})
+	if err != nil {
+		errLog.Println(err)
+		return
+	}
 	s.StartBlocking()
 }

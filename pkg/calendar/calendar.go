@@ -1,230 +1,105 @@
 package calendar
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"sort"
+	"strings"
 	"time"
 
-	"github.com/emersion/go-ical"
+	jcal "github.com/xHain-hackspace/go-jcal"
 )
 
-type IcalData struct {
-	url    string
-	tz     *time.Location
-	parsed *ical.Calendar
-	logger *log.Logger
-}
-
 type Event struct {
-	UID         string
 	Start       time.Time
 	End         time.Time
 	Summary     string
-	Location    string
 	Description string
 }
 
-// Obtains an iCal from a given URL
-func ImportCalendar(url string, l *log.Logger) (IcalData, error) {
-	data := IcalData{url: url, tz: time.Local, logger: l}
+type NextcloudCalendar struct {
+	BaseUrl url.URL
+}
 
-	// Download the ICS file
-	resp, err := http.Get(url)
+// NewNextcloudCalendar creates a new nextcloud calendar instance
+//
+// Parameters:
+//
+//	baseUrlStr - the base url e.g. https://files.x-hain.de/remote.php/dav/public-calendars/Yi63cicwgDnjaBHR
+func NewNextcloudCalendar(baseUrlStr string) (NextcloudCalendar, error) {
+	calendar := NextcloudCalendar{}
+
+	baseUrlStr = strings.TrimSpace(baseUrlStr)
+
+	baseUrl, err := url.Parse(baseUrlStr)
 	if err != nil {
-		return data, err
+		return calendar, err
 	}
-	defer resp.Body.Close()
+	calendar.BaseUrl = *baseUrl
 
-	// Parse the ICS file
-	parser := ical.NewDecoder(resp.Body)
-	parsedData, err := parser.Decode()
-	if err != nil {
-		return data, err
-	}
-
-	data.parsed = parsedData
-	return data, nil
+	return calendar, nil
 }
 
 // Assembles a list of events on a given date
-func (data IcalData) GetEventsOn(date time.Time) ([]Event, error) {
+func (c NextcloudCalendar) GetEventsOn(date time.Time) ([]Event, error) {
+	events := make([]Event, 0)
 
-	allEvents := make(map[string]ical.Event)
-	selectedEvents := make([]Event, 0)
+	// build url params
+	params := url.Values{}
+	params.Add("accept", "jcal")
+	params.Add("expand", "1")
+	params.Add("export", "")
 
-	// Prepare map of all events
-	for _, event := range data.parsed.Events() {
+	// Get the first and last date of the day
+	dayBegin := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.Local)
+	dayEnd := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 0, time.Local)
+	params.Add("start", fmt.Sprintf("%d", dayBegin.Unix()))
+	params.Add("end", fmt.Sprintf("%d", dayEnd.Unix()))
 
-		uid := event.Props.Get(ical.PropUID).Value
-		allEvents[uid] = data.handleDuplicates(uid, event, allEvents)
+	// add params to url
+	requestUrl := c.BaseUrl
+	requestUrl.RawQuery = params.Encode()
 
-	}
-
-	for _, event := range allEvents {
-
-		// Checks whether event happens on the given date
-		if data.isSingleEventOnDate(event, date) ||
-			data.isRecurringEventOnDate(event, date) {
-
-			convertedEvent, err := data.convertIcal(event, date)
-			if err != nil {
-				return nil, err
-			}
-			selectedEvents = append(selectedEvents, convertedEvent)
-		}
-	}
-
-	sortEvents(selectedEvents)
-
-	return selectedEvents, nil
-}
-
-// Checks whether the event is a single, standard event on the given date
-func (data IcalData) isSingleEventOnDate(event ical.Event, date time.Time) bool {
-
-	start, err := event.DateTimeStart(data.tz)
+	// make request
+	resp, err := http.Get(requestUrl.String())
 	if err != nil {
-		data.logger.Printf("could not get start time: %s\n", err)
-		return false
+		return events, err
 	}
 
-	end, err := event.DateTimeEnd(data.tz)
+	// read data
+	respData, err := io.ReadAll(resp.Body)
 	if err != nil {
-		data.logger.Printf("could not get end time: %s\n", err)
-		return false
+		return events, err
+	}
+	resp.Body.Close()
+
+	// parse jcal
+	var jcalObj jcal.JCalObject
+	if err := json.Unmarshal(respData, &jcalObj); err != nil {
+		log.Fatalf("Error parsing jCal JSON: %v", err)
 	}
 
-	todayStart := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, data.tz)
-	todayEnd := todayStart.Add(24 * time.Hour)
-
-	isRegularEvent := (start.After(todayStart) || start.Equal(todayStart)) && start.Before(todayEnd)
-	isSpanningEvent := start.Before(todayStart) && end.After(todayEnd)
-
-	return isRegularEvent || isSpanningEvent
-}
-
-// Checks whether an recurring event happens on a given date
-func (data IcalData) isRecurringEventOnDate(event ical.Event, date time.Time) bool {
-	recurrenceSet, err := event.RecurrenceSet(data.tz)
-	if err != nil {
-		data.logger.Printf("could not get recurrence set: %s\n", err)
-		return false
-	}
-	if recurrenceSet == nil {
-		return false
+	// convert from jcal
+	for _, jEvent := range jcalObj.Events {
+		events = append(events, fromJcal(jEvent))
 	}
 
-	todayStart := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, data.tz)
-
-	// Obtain the next recurrence date after todayStart.
-	nextRecurrence := recurrenceSet.After(todayStart, true)
-
-	// Use components of nextRecurrence to create a new date with a specific time set to midnight.
-	recurrenceDate := time.Date(nextRecurrence.Year(), nextRecurrence.Month(), nextRecurrence.Day(), 0, 0, 0, 0, data.tz)
-
-	return recurrenceDate.Equal(todayStart)
-}
-
-// Check for a duplicate and returns the right event
-func (data IcalData) handleDuplicates(uid string, event ical.Event, allEvents map[string]ical.Event) ical.Event {
-
-	newCandidate := event
-
-	if _, ok := allEvents[uid]; ok {
-
-		existingCandidate := allEvents[uid]
-
-		existingCandidateCreatedProp := allEvents[uid].Props.Get(ical.PropCreated)
-		if existingCandidateCreatedProp == nil {
-			return existingCandidate
-		}
-		existingCandidateCreatedTime, err := existingCandidateCreatedProp.DateTime(data.tz)
-		if err != nil {
-			return existingCandidate
-		}
-
-		newCandidateCreatedProp := event.Props.Get(ical.PropCreated)
-		if newCandidateCreatedProp == nil {
-			return existingCandidate
-		}
-
-		newCandidateCreatedTime, err := newCandidateCreatedProp.DateTime(data.tz)
-		if err != nil {
-			return existingCandidate
-		}
-
-		// If there is a duplicate select the one that was created later
-		if existingCandidateCreatedTime.After(newCandidateCreatedTime) {
-			return existingCandidate
-		}
-	}
-
-	return newCandidate
-}
-
-// Sorts events by start time
-func sortEvents(events []Event) {
+	// sort events by start time
 	sort.SliceStable(events, func(i, j int) bool {
 		return events[i].Start.Before(events[j].Start)
 	})
+	return events, nil
 }
 
-// Builds the object that is used to represent an event
-func (data IcalData) convertIcal(icalEvent ical.Event, date time.Time) (Event, error) {
-	event := Event{}
-
-	// Handle UID
-	uidProp := icalEvent.Props.Get(ical.PropUID)
-	if uidProp != nil {
-		event.UID = uidProp.Value
-	} else {
-		return event, fmt.Errorf("UID is missing for event %s", icalEvent.Name)
+func fromJcal(jEvent jcal.Event) Event {
+	return Event{
+		Summary:     jEvent.Summary,
+		Description: jEvent.Description,
+		Start:       jEvent.DtStart,
+		End:         jEvent.DtEnd,
 	}
-
-	// Handle DTSTART
-	startProp := icalEvent.Props.Get(ical.PropDateTimeStart)
-	if startProp == nil {
-		return event, fmt.Errorf("DTSTART is missing for event %s", icalEvent.Name)
-	}
-	eventStart, err := startProp.DateTime(data.tz)
-	if err != nil {
-		return event, err
-	}
-	event.Start = time.Date(date.Year(), date.Month(), date.Day(), eventStart.Hour(), eventStart.Minute(), 0, 0, date.Location())
-
-	// Handle DTEND
-	endProp := icalEvent.Props.Get(ical.PropDateTimeEnd)
-	if endProp != nil {
-		eventEnd, err := endProp.DateTime(data.tz)
-		if err != nil {
-			return event, err
-		}
-		// Calculate the difference in days and adjust Event.End
-		daysDiff := int(eventEnd.Sub(eventStart).Hours() / 24)
-		event.End = time.Date(date.Year(), date.Month(), date.Day()+daysDiff, eventEnd.Hour(), eventEnd.Minute(), 0, 0, date.Location())
-	}
-
-	// Handle SUMMARY
-	summaryProp := icalEvent.Props.Get(ical.PropSummary)
-	if summaryProp != nil {
-		event.Summary = summaryProp.Value
-	}
-
-	// Handle LOCATION
-	locationProp := icalEvent.Props.Get(ical.PropLocation)
-	if locationProp != nil {
-		event.Location = locationProp.Value
-	}
-
-	// Handle DESCRIPTION
-	descriptionProp := icalEvent.Props.Get(ical.PropDescription)
-	if descriptionProp != nil {
-		event.Description = descriptionProp.Value
-	} else {
-		event.Description = ""
-	}
-
-	return event, nil
 }

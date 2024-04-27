@@ -19,9 +19,9 @@ jobs:
           timezoneMacos: "Europe/Berlin"
           timezoneWindows: "Europe/Berlin"
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.19.6
+          go-version: 1.22
           cache: true
       - name: Test
         run: go test -v ./...
