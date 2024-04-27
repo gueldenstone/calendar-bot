@@ -98,7 +98,7 @@ func main() {
 	timezone := time.Local
 	s := gocron.NewScheduler(timezone)
 	infoLog.Printf("Scheduling notifications for %s", notifyTime.Format("15:04"))
-	_, err = s.Every(1).Day().At(time.Now().Add(2 * time.Second)).Do(func() {
+	_, err = s.Every(1).Day().At(notifyTime).Do(func() {
 		infoLog.Println("Start Notification")
 		cal, err := calendar.NewNextcloudCalendar(conf.Calendar)
 		if err != nil {
