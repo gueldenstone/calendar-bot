@@ -22,6 +22,7 @@ FROM alpine
 
 WORKDIR /
 RUN apk add --no-cache tzdata
+RUN ln -s /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 RUN adduser -D calendar-bot
 USER calendar-bot
 COPY --from=build /calendar-bot /calendar-bot

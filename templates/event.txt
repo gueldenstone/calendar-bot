@@ -1,5 +1,8 @@
 Events on {{ today }}:
 {{range .Events}}
-- {{.Summary}}{{ if ne .StartTime `` }}: {{.StartTime}} - {{.EndTime}} {{end}} {{ if ne .TxtDescription `` }}
-		({{.TxtDescription}}) {{end}}
+- {{.StartTime}} - {{.EndTime}}
+  {{.Summary}}
+  {{ if ne .TxtDescription `` }}
+		({{.TxtDescription}})
+  {{end}}
 {{end}}
