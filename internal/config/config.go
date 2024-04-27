@@ -9,11 +9,11 @@ import (
 
 type Config struct {
 	Homeserver string   `yaml:"homeserver"`
-	Rooms      []string `yaml:"rooms"`
 	Calendar   string   `yaml:"calendarURL"`
 	NotifyTime string   `yaml:"nofifyTime"`
 	Username   string   `yaml:"username"`
 	Password   string   `yaml:"password"`
+	Rooms      []string `yaml:"rooms"`
 }
 
 func Parse(path string) (Config, error) {

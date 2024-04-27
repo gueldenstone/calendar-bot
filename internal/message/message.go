@@ -6,7 +6,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/xHain-hackspace/go-jcal"
+	"github.com/gueldenstone/calendar-bot/pkg/calendar"
 	"maunium.net/go/mautrix/event"
 )
 
@@ -23,18 +23,18 @@ type Event struct {
 }
 
 type TemplatedMessage struct {
-	Events       []Event
 	htmlTemplate *template.Template
 	txtTemplate  *template.Template
+	Events       []Event
 }
 
-func NewTemplatedMessage(htmlTemplate, txtTemplate string, events []jcal.Event, tz *time.Location) (TemplatedMessage, error) {
+func NewTemplatedMessage(htmlTemplate, txtTemplate string, events []calendar.Event, tz *time.Location) (TemplatedMessage, error) {
 	msg := TemplatedMessage{}
 	for _, evt := range events {
 		event := Event{
 			Summary:         evt.Summary,
-			StartTime:       evt.DtStart.In(tz).Format(timeLayout),
-			EndTime:         evt.DtEnd.In(tz).Format(timeLayout),
+			StartTime:       evt.Start.In(tz).Format(timeLayout),
+			EndTime:         evt.End.In(tz).Format(timeLayout),
 			HtmlDescription: strings.ReplaceAll(strings.ReplaceAll(evt.Description, "\n", "<br>"), "\\", ""),
 			TxtDescription:  evt.Description,
 		}
@@ -71,6 +71,7 @@ func (t TemplatedMessage) RenderTxt() (string, error) {
 	err := t.txtTemplate.Execute(&buf, t)
 	return buf.String(), err
 }
+
 func (t TemplatedMessage) Render() (html string, txt string, err error) {
 	html, err = t.RenderHtml()
 	if err != nil {
