@@ -14,6 +14,7 @@ type Config struct {
 	Username   string   `yaml:"username"`
 	Password   string   `yaml:"password"`
 	Rooms      []string `yaml:"rooms"`
+	Testing    bool     `yaml:"testing"`
 }
 
 func Parse(path string) (Config, error) {

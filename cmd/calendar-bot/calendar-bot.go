@@ -91,9 +91,18 @@ func main() {
 	if len(rooms) == 0 {
 		errLog.Fatalf("Could not resolve or find any of the provided rooms!\n")
 	}
-	notifyTime, err := time.Parse("15:04", conf.NotifyTime)
-	if err != nil {
-		notifyTime, _ = time.Parse("15:04", "10:00")
+	var notifyTime time.Time
+	if conf.Testing {
+		infoLog.Println("Running in test configuration")
+		infoLog.Println("Using 5 seconds from now as notify time")
+		notifyTime = time.Now().Add(5 * time.Second)
+	} else {
+		notifyTime, err = time.Parse("15:04", conf.NotifyTime)
+		if err != nil {
+			// default time
+			errLog.Println("could not parse notification time, using 10:00")
+			notifyTime, _ = time.Parse("15:04", "10:00")
+		}
 	}
 	timezone := time.Local
 	s := gocron.NewScheduler(timezone)
