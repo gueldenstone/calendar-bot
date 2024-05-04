@@ -20,6 +20,7 @@ type Event struct {
 	EndTime         string
 	HtmlDescription string
 	TxtDescription  string
+	IsAllDay        bool
 }
 
 type TemplatedMessage struct {
@@ -37,6 +38,7 @@ func NewTemplatedMessage(htmlTemplate, txtTemplate string, events []calendar.Eve
 			EndTime:         evt.End.In(tz).Format(timeLayout),
 			HtmlDescription: strings.ReplaceAll(strings.ReplaceAll(evt.Description, "\n", "<br>"), "\\", ""),
 			TxtDescription:  evt.Description,
+			IsAllDay:        evt.IsAllDay,
 		}
 
 		msg.Events = append(msg.Events, event)

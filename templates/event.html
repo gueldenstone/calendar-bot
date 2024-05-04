@@ -2,7 +2,9 @@
 <ul>
   {{range .Events}}
     <li>
+    {{ if not .IsAllDay }}
     {{.StartTime}} - {{.EndTime}}<br>
+    {{ end }}
     {{.Summary}} <br>
     {{ if ne .HtmlDescription `` }}
     ({{.HtmlDescription}})

@@ -30,8 +30,8 @@ github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
 github.com/stretchr/testify v1.8.2 h1:+h33VjcLVPDHtOdpUCuF+7gSuG3yGIftsP1YvFihtJ8=
 github.com/stretchr/testify v1.8.2/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
-github.com/xHain-hackspace/go-jcal v0.0.3 h1:2FcfP0FimmhMOUCHQ6uXCWgNJnk3OQImbZSFKt8zBbI=
-github.com/xHain-hackspace/go-jcal v0.0.3/go.mod h1:TtrDntq5LuHqIYYnPTBmM5fAD0EMWRf+ZS7H+3XpwHM=
+github.com/xHain-hackspace/go-jcal v0.0.5 h1:fvAgMaSMuVbYtWdqOG18OpG8XShgOEhq5PKINbT+ToU=
+github.com/xHain-hackspace/go-jcal v0.0.5/go.mod h1:TtrDntq5LuHqIYYnPTBmM5fAD0EMWRf+ZS7H+3XpwHM=
 go.uber.org/atomic v1.9.0 h1:ECmE8Bn/WFTYwEW/bpKD3M8VtR/zQVbavAoalC1PYyE=
 go.uber.org/atomic v1.9.0/go.mod h1:fEN4uk6kAWBTFdckzkM89CLk9XfWZrxpCo0nPH17wJc=
 golang.org/x/crypto v0.0.0-20220513210258-46612604a0f9 h1:NUzdAbFtCJSXU20AOXgeqaUwg8Ypg4MPYmL+d+rsB5c=

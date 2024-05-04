@@ -19,6 +19,7 @@ type Event struct {
 	End         time.Time
 	Summary     string
 	Description string
+	IsAllDay    bool
 }
 
 type NextcloudCalendar struct {
@@ -101,5 +102,6 @@ func fromJcal(jEvent jcal.Event) Event {
 		Description: jEvent.Description,
 		Start:       jEvent.DtStart,
 		End:         jEvent.DtEnd,
+		IsAllDay:    jEvent.IsAllDay,
 	}
 }
