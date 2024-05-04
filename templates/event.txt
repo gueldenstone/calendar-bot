@@ -1,7 +1,11 @@
 Events on {{ today }}:
 {{range .Events}}
-- {{.StartTime}} - {{.EndTime}}
+  {{ if not .IsAllDay }}
+  - {{.StartTime}} - {{.EndTime}}
   {{.Summary}}
+  {{ else }}
+  - {{.Summary}}
+  {{ end }}
   {{ if ne .TxtDescription `` }}
 		({{.TxtDescription}})
   {{end}}
