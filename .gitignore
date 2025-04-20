@@ -1,3 +1,28 @@
-.DS_Store
-.envrc
+# local config
 config.yaml
+
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Build directories
+.gopath/
+bin/
+vendor/
+
+# IDE / Editor folders
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Direnv
+.direnv/
+.envrc
+
