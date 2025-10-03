@@ -1,6 +1,6 @@
 module github.com/gueldenstone/calendar-bot
 
-go 1.22.0
+go 1.23.0
 
 require (
 	github.com/go-co-op/gocron v1.37.0

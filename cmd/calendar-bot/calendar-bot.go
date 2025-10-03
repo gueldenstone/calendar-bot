@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -119,6 +120,18 @@ func main() {
 			errLog.Println(err)
 			return
 		}
+
+		// filter events which do not start today
+		todayEvents = slices.Collect(func(yield func(calendar.Event) bool) {
+			for _, event := range todayEvents {
+				if event.Start.Day() == time.Now().Day() {
+					if !yield(event) {
+						return
+					}
+				}
+			}
+		})
+
 		if len(todayEvents) == 0 {
 			infoLog.Println("No events today!")
 			return
