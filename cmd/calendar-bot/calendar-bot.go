@@ -124,7 +124,7 @@ func main() {
 		// filter events which do not start today
 		todayEvents = slices.Collect(func(yield func(calendar.Event) bool) {
 			for _, event := range todayEvents {
-				if event.Start.Day() == time.Now().Day() {
+				if event.Start.Local().Day() == time.Now().Local().Day() {
 					if !yield(event) {
 						return
 					}
