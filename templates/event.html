@@ -2,13 +2,8 @@
 <ul>
   {{range .Events}}
     <li>
-    {{ if not .IsAllDay }}
-    {{.StartTime}} - {{.EndTime}}<br>
-    {{ end }}
-    {{.Summary}} <br>
-    {{ if ne .HtmlDescription `` }}
-    ({{.HtmlDescription}})
-    {{end}}
+    {{ if not .IsAllDay }}{{.StartTime}} - {{.EndTime}}: {{ end }}{{.Summary}}{{ if ne .Location `` }} @{{.Location}}{{ end }} <br>
+    {{ if ne .HtmlDescription `` }}{{.HtmlDescription}}{{ end }}
     </li>
     <br>
   {{end}}
