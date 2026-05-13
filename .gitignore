@@ -1,5 +1,6 @@
 # local config
 config.yaml
+config.yml
 
 # Binaries
 *.exe
