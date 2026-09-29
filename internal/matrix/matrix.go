@@ -1,6 +1,7 @@
 package matrix
 
 import (
+	"context"
 	"strings"
 
 	"maunium.net/go/mautrix"
@@ -17,7 +18,7 @@ func LoginToHomeServer(homeserver, username, password string) (*mautrix.Client, 
 	if err != nil {
 		return nil, err
 	}
-	_, err = client.Login(&mautrix.ReqLogin{
+	_, err = client.Login(context.Background(), &mautrix.ReqLogin{
 		Type:             "m.login.password",
 		Identifier:       mautrix.UserIdentifier{Type: mautrix.IdentifierTypeUser, User: username},
 		Password:         password,
@@ -35,7 +36,7 @@ func GetValidAndJoinableRooms(client *mautrix.Client, roomAliases []string) []id
 	for _, rid := range roomAliases {
 		var roomID id.RoomID
 		if strings.HasPrefix(rid, "#") {
-			resp, err := client.ResolveAlias(id.RoomAlias(rid))
+			resp, err := client.ResolveAlias(context.Background(), id.RoomAlias(rid))
 			if err != nil {
 				continue
 			}
@@ -43,7 +44,7 @@ func GetValidAndJoinableRooms(client *mautrix.Client, roomAliases []string) []id
 		} else {
 			roomID = id.RoomID(rid)
 		}
-		if _, err := client.JoinRoomByID(roomID); err != nil {
+		if _, err := client.JoinRoomByID(context.Background(), roomID); err != nil {
 			continue
 		} else {
 			rooms = append(rooms, roomID)

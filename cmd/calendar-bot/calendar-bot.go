@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 	"os"
@@ -62,7 +63,7 @@ func main() {
 		errLog.Fatal(err)
 	}
 	defer func() {
-		if _, err := client.Logout(); err != nil {
+		if _, err := client.Logout(context.Background()); err != nil {
 			errLog.Println(err)
 		}
 	}()
@@ -73,7 +74,7 @@ func main() {
 	for _, rid := range conf.Rooms {
 		var roomID id.RoomID
 		if strings.HasPrefix(rid, "#") {
-			resp, err := client.ResolveAlias(id.RoomAlias(rid))
+			resp, err := client.ResolveAlias(context.Background(), id.RoomAlias(rid))
 			if err != nil {
 				errLog.Printf("Error: Could not find the room: %s\n", err)
 				continue
@@ -82,7 +83,7 @@ func main() {
 		} else {
 			roomID = id.RoomID(rid)
 		}
-		if _, err := client.JoinRoomByID(roomID); err != nil {
+		if _, err := client.JoinRoomByID(context.Background(), roomID); err != nil {
 			errLog.Printf("could not join room: %s\n", err)
 		} else {
 			rooms = append(rooms, roomID)
@@ -149,7 +150,7 @@ func main() {
 			return
 		}
 		for _, room := range rooms {
-			if _, err := client.SendMessageEvent(room, event.EventMessage, matrixMsg); err != nil {
+			if _, err := client.SendMessageEvent(context.Background(), room, event.EventMessage, matrixMsg); err != nil {
 				errLog.Println(err)
 				continue
 			}
